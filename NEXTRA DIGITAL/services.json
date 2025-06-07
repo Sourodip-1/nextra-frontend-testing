@@ -1,0 +1,19 @@
+[
+  { "title": "Marketplace Onboarding", "description": "End-to-end setup on Amazon, Flipkart, Meesho, JioMart, etc." },
+  { "title": "Product Listing & SEO", "description": "Keyword-rich titles, bullet points, descriptions, and A+ content." },
+  { "title": "Account Management", "description": "Daily operations, order processing, account health checks." },
+  { "title": "Advertising & PPC Campaigns", "description": "Manual/Auto campaigns, budget optimization, reporting." },
+  { "title": "Catalog Management", "description": "Variation listings, pricing audits, content revisions." },
+  { "title": "Product Photography & Editing", "description": "Studio-quality images, infographics, 3D renders." },
+  { "title": "Customer Service Support", "description": "Buyer message handling, feedback strategy." },
+  { "title": "Policy Violation & Suspension Support", "description": "Account recovery and compliance guidance." },
+  { "title": "GST & Tax Filing Assistance", "description": "Via expert CA partners for monthly filings." },
+  { "title": "Courier & Logistics Integration", "description": "Shiprocket, Delhivery, Easy Ship setup." },
+  { "title": "B2B/B2C Bulk Order Handling", "description": "Quote generation and custom packaging." },
+  { "title": "Brand Launch & GTM Strategy", "description": "Market entry plans and competitor analysis." },
+  { "title": "D2C Website Development", "description": "Shopify, WooCommerce, mobile-optimized designs." },
+  { "title": "Social Media Management", "description": "Content planning, influencer strategy." },
+  { "title": "Monthly Reporting & BI", "description": "Custom dashboards and performance reports." },
+  { "title": "Training & Workshops", "description": "For seller training, growth tactics, and marketplace policies." },
+  { "title": "International Marketplace Support", "description": "Amazon Global, Etsy, eBay onboarding." }
+]
