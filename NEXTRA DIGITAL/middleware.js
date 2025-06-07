@@ -1,14 +1,13 @@
+// middleware.js
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
   const url = request.nextUrl.clone();
+  const token = request.cookies.get('admin-auth')?.value;
 
-  // Apply protection only to /dashboard route
   if (url.pathname.startsWith('/dashboard')) {
-    const token = request.cookies.get('admin-auth')?.value;
-
-    if (token !== process.env.ADMIN_TOKEN) {
-      url.pathname = '/login'; // redirect to custom login page
+    if (token !== process.env.NEXT_PUBLIC_ADMIN_TOKEN) {
+      url.pathname = '/login';
       return NextResponse.redirect(url);
     }
   }
