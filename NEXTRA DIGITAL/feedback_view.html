@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Feedbacks</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 to-blue-200 min-h-screen p-4 flex items-center justify-center relative">
+  <!-- Feedback Button -->
+<div class="absolute top-4 left-4 z-10">
+  <a href="dashboard.html"
+    class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded-lg shadow hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200">
+    <i class="fas fa-comments"></i> DASHBOARD
+  </a>
+</div>
+
+  <!-- Logout Button -->
+  <div id="logoutSection" class="absolute top-4 right-4 hidden">
+    <button id="logoutBtn"
+      class="text-xs bg-red-500 hover:bg-red-600 text-white font-medium px-3 py-1.5 rounded-lg transition-all duration-300 shadow">
+      Logout
+    </button>
+  </div>
+
+  <div class="max-w-2xl w-full p-6 bg-white rounded-2xl shadow-2xl fade-in text-center">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">All Feedbacks</h1>
+
+    <!-- Password Input -->
+    <div id="authSection" class="mb-6">
+      <input type="password" id="adminPassword" placeholder="Enter admin password"
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      <button id="loginBtn"
+        class="mt-3 w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2.5 rounded-lg transition-all duration-300 shadow-md">
+        View Feedbacks
+      </button>
+      <p id="authError" class="text-red-500 mt-2 hidden text-sm font-medium">Incorrect password.</p>
+    </div>
+
+    <!-- Feedback List -->
+    <div id="feedbackList" class="space-y-4 hidden"></div>
+
+    <!-- Pagination Controls -->
+    <div id="pagination" class="flex justify-center items-center gap-2 mt-6 hidden">
+      <button id="prevBtn"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold">Prev</button>
+      <span id="pageIndicator" class="text-gray-600 font-medium"></span>
+      <button id="nextBtn"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold">Next</button>
+    </div>
+  </div>
+
+  <script>
+    const feedbackList = document.getElementById('feedbackList');
+    const pagination = document.getElementById('pagination');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    const authSection = document.getElementById('authSection');
+    const logoutSection = document.getElementById('logoutSection');
+    const adminPassword = document.getElementById('adminPassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authError = document.getElementById('authError');
+
+    let currentPage = 1;
+    const limit = 5;
+    let token = localStorage.getItem('feedback_token') || '';
+
+    if (token) fetchFeedbacks(currentPage);
+
+    loginBtn.addEventListener('click', () => {
+      if (!adminPassword.value.trim()) return;
+      token = adminPassword.value.trim();
+      localStorage.setItem('feedback_token', token);
+      fetchFeedbacks(currentPage);
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('feedback_token');
+      token = '';
+      authSection.classList.remove('hidden');
+      logoutSection.classList.add('hidden');
+      feedbackList.classList.add('hidden');
+      pagination.classList.add('hidden');
+    });
+
+    async function fetchFeedbacks(page) {
+      try {
+        const res = await fetch(`https://nextra-backend.onrender.com/api/feedbacks?page=${page}&limit=${limit}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || 'Unauthorized');
+        }
+
+        authSection.classList.add('hidden');
+        logoutSection.classList.remove('hidden');
+        feedbackList.classList.remove('hidden');
+        pagination.classList.remove('hidden');
+        authError.classList.add('hidden');
+
+        renderFeedbacks(data.feedbacks);
+        pageIndicator.textContent = `Page ${data.page}`;
+        prevBtn.disabled = data.page <= 1;
+        nextBtn.disabled = data.page >= data.totalPages;
+
+      } catch (err) {
+        authError.classList.remove('hidden');
+        feedbackList.classList.add('hidden');
+        pagination.classList.add('hidden');
+        logoutSection.classList.add('hidden');
+        localStorage.removeItem('feedback_token');
+      }
+    }
+
+    function renderFeedbacks(feedbacks) {
+      feedbackList.innerHTML = '';
+    
+      feedbacks.forEach(({ rating, feedback, date }) => {
+        console.log(feedbacks);
+        
+        const card = document.createElement('div');
+        card.className = 'p-4 border rounded-lg shadow-sm bg-indigo-50';
+
+        const stars = '<i class="fa-solid fa-star text-yellow-400 mr-1"></i>'.repeat(rating);
+        card.innerHTML = `
+          <div class="flex items-center mb-2 justify-center">${stars}</div>
+          <p class="text-gray-700 mb-1">${feedback}</p>
+          <p class="text-sm text-gray-500">${new Date(date).toLocaleString()}</p>
+        `;
+
+        feedbackList.appendChild(card);
+      });
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchFeedbacks(currentPage);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      currentPage++;
+      fetchFeedbacks(currentPage);
+    });
+  </script>
+</body>
+
+</html>

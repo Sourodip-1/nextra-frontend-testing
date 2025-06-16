@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 to-blue-200 min-h-screen p-4 flex items-center justify-center relative">
+  <div class="absolute top-4 left-4 z-10">
+  <a href="feedback_view.html"
+    class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded-lg shadow hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200">
+    <i class="fas fa-comments"></i> Feedbacks
+  </a>
+</div>
+  <div class="max-w-5xl w-full p-6 bg-white rounded-2xl shadow-2xl fade-in">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">📅 Booking Dashboard</h1>
+
+    <!-- Auth Section -->
+    <div id="authSection" class="mb-6">
+      <input type="password" id="passwordInput" placeholder="Enter admin password..."
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-3" />
+      <button id="authBtn"
+        class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2.5 rounded-lg transition-all duration-300 shadow-md">
+        Login
+      </button>
+    </div>
+
+    <!-- Controls -->
+    <div id="controlsSection" class="mb-4 hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <input type="date" id="datePicker"
+          class="px-4 py-2 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        <input type="text" id="searchInput" placeholder="Search by name or service..."
+          class="px-4 py-2 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-400 col-span-2" />
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard"></div>
+  </div>
+
+  <script>
+    const dashboard = document.getElementById('dashboard');
+    const datePicker = document.getElementById('datePicker');
+    const searchInput = document.getElementById('searchInput');
+    const authBtn = document.getElementById('authBtn');
+    const passwordInput = document.getElementById('passwordInput');
+    const authSection = document.getElementById('authSection');
+    const controlsSection = document.getElementById('controlsSection');
+
+    let allBookings = {};
+    let authToken = '';
+
+    function renderDashboard(data, filter = '') {
+      dashboard.innerHTML = '';
+
+      Object.keys(data).forEach(slot => {
+        const bookings = data[slot].filter(b => {
+          const text = (b.name + b.service).toLowerCase();
+          return text.includes(filter.toLowerCase());
+        });
+
+        if (bookings.length === 0) return;
+
+        const slotCard = document.createElement('div');
+        slotCard.className = 'mb-6 bg-indigo-50 rounded-xl shadow-md overflow-hidden';
+
+        const slotHeader = document.createElement('div');
+        slotHeader.className = 'bg-indigo-600 text-white text-lg font-semibold px-4 py-3';
+        slotHeader.innerHTML = `🕒 ${slot} (${bookings.length} booking${bookings.length > 1 ? 's' : ''})`;
+
+        const cardBody = document.createElement('div');
+        cardBody.className = 'grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 p-4';
+
+        bookings.forEach(b => {
+          const bookingCard = document.createElement('div');
+          bookingCard.className = 'bg-white p-4 border border-gray-200 rounded-lg shadow-sm';
+          bookingCard.innerHTML = `
+            <p class="text-sm text-gray-600"><strong>👤 Name:</strong> ${b.name}</p>
+            <p class="text-sm text-gray-600"><strong>📧 Email:</strong> ${b.email}</p>
+            <p class="text-sm text-gray-600"><strong>💼 Service:</strong> ${b.service}</p>
+            <p class="text-sm text-gray-600"><strong>📝 Message:</strong> ${b.message}</p>
+          `;
+          cardBody.appendChild(bookingCard);
+        });
+
+        slotCard.appendChild(slotHeader);
+        slotCard.appendChild(cardBody);
+        dashboard.appendChild(slotCard);
+      });
+    }
+
+    function loadBookings(date) {
+      dashboard.innerHTML = '<p class="text-center text-gray-500">Loading...</p>';
+
+      fetch(`https://nextra-backend.onrender.com/api/bookings?date=${date}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Unauthorized or failed request');
+          return res.json();
+        })
+        .then(data => {
+          allBookings = data;
+          renderDashboard(allBookings);
+        })
+        .catch(err => {
+          console.error(err);
+          dashboard.innerHTML = '<div class="text-red-600 text-center">Failed to load data. Check password or server.</div>';
+        });
+    }
+
+    authBtn.addEventListener('click', () => {
+      const password = passwordInput.value.trim();
+      if (!password) {
+        alert('Please enter a password');
+        return;
+      }
+
+      authToken = password;
+
+      // Set date picker to today's date
+      const today = new Date().toISOString().split('T')[0];
+      datePicker.value = today;
+
+      loadBookings(today);
+      authSection.classList.add('hidden');
+      controlsSection.classList.remove('hidden');
+    });
+
+    datePicker.addEventListener('change', () => {
+      loadBookings(datePicker.value);
+    });
+
+    searchInput.addEventListener('input', () => {
+      renderDashboard(allBookings, searchInput.value);
+    });
+  </script>
+</body>
+
+</html>

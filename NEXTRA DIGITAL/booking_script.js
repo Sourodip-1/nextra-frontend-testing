@@ -6,7 +6,7 @@ const timeSlotSelect = document.getElementById("time");
 dateInput.addEventListener("change", async () => {
     const date = dateInput.value;
     timeSlotSelect.innerHTML =
-        "<option disabled selected> FETCHING AVAILABLE SLOTS PLEASE WAIT....(est. 1 min) </option>";
+        "<option disabled selected>Fetching slots (estd- 1 min)</option>";
 
     try {
         const res = await fetch(
